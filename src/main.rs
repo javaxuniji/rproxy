@@ -18,6 +18,8 @@ fn main() -> eframe::Result<()> {
 }
 
 fn setup_chinese_font(ctx: &egui::Context) {
+    // 参考 egui-chinese-font: 使用可稳定显示中文的字体注入到 egui。
+    // 当前环境无法在线拉取 crate 文档，因此这里保留本地字体加载作为兜底实现。
     let mut fonts = egui::FontDefinitions::default();
 
     for (name, path) in windows_cjk_font_candidates() {
@@ -35,19 +37,20 @@ fn setup_chinese_font(ctx: &egui::Context) {
                 .entry(egui::FontFamily::Monospace)
                 .or_default()
                 .insert(0, name.to_string());
-            break;
         }
     }
 
     ctx.set_fonts(fonts);
 }
 
-fn windows_cjk_font_candidates() -> [(&'static str, &'static str); 6] {
+fn windows_cjk_font_candidates() -> [(&'static str, &'static str); 8] {
     [
+        ("simhei", "C:/Windows/Fonts/simhei.ttf"),
+        ("simkai", "C:/Windows/Fonts/simkai.ttf"),
+        ("simsun", "C:/Windows/Fonts/simsun.ttc"),
         ("msyh", "C:/Windows/Fonts/msyh.ttc"),
         ("msyhbd", "C:/Windows/Fonts/msyhbd.ttc"),
-        ("simsun", "C:/Windows/Fonts/simsun.ttc"),
-        ("simhei", "C:/Windows/Fonts/simhei.ttf"),
+        ("msyh-ui", "C:/Windows/Fonts/msyh.ttc"),
         ("deng", "C:/Windows/Fonts/Deng.ttf"),
         ("dengb", "C:/Windows/Fonts/Dengb.ttf"),
     ]
