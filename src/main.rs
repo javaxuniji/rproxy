@@ -76,7 +76,7 @@ impl Default for ProxyLauncherApp {
             processes: Vec::new(),
             selected_index: None,
             args: String::new(),
-            status: "请选择进程并启动。".to_string(),
+            status: "Select a process and launch it.".to_string(),
         };
         app.refresh_processes();
         app
@@ -110,14 +110,14 @@ impl ProxyLauncherApp {
 
     fn current_proxy_url(&self) -> Result<String, String> {
         if self.ip.trim().is_empty() {
-            return Err("IP 地址不能为空".to_string());
+            return Err("IP address cannot be empty".to_string());
         }
 
         let port = self
             .port
             .trim()
             .parse::<u16>()
-            .map_err(|_| "端口号无效（1-65535）".to_string())?;
+            .map_err(|_| "Invalid port (1-65535)".to_string())?;
 
         Ok(format!(
             "{}://{}:{}",
@@ -143,7 +143,7 @@ impl ProxyLauncherApp {
         {
             Some(info) => info,
             None => {
-                self.status = "请先选择一个进程".to_string();
+                self.status = "Please select a process first".to_string();
                 return;
             }
         };
@@ -151,7 +151,9 @@ impl ProxyLauncherApp {
         let exe_path = match selected.executable_path() {
             Some(path) if path.exists() => path,
             _ => {
-                self.status = "所选进程没有可执行文件路径，无法重启为代理模式".to_string();
+                self.status =
+                    "The selected process has no executable path and cannot be relaunched"
+                        .to_string();
                 return;
             }
         };
@@ -176,14 +178,14 @@ impl ProxyLauncherApp {
         match command.spawn() {
             Ok(child) => {
                 self.status = format!(
-                    "已启动 [{}] pid={}，代理={}。注意：仅新启动进程会继承代理环境变量。",
+                    "Started [{}] pid={} with proxy={}. Note: only newly launched process inherits these variables.",
                     selected.name,
                     child.id(),
                     proxy
                 );
             }
             Err(err) => {
-                self.status = format!("启动失败: {err}");
+                self.status = format!("Launch failed: {err}");
             }
         }
     }
@@ -192,18 +194,20 @@ impl ProxyLauncherApp {
 impl eframe::App for ProxyLauncherApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("rproxy - 进程代理启动器");
-            ui.label("通过设置代理环境变量启动目标进程（HTTP/HTTPS/ALL_PROXY）。");
+            ui.heading("rproxy - Process Proxy Launcher");
+            ui.label(
+                "Launch a process with HTTP_PROXY / HTTPS_PROXY / ALL_PROXY environment variables.",
+            );
             ui.separator();
 
             ui.horizontal(|ui| {
-                ui.label("代理 IP:");
+                ui.label("Proxy IP:");
                 ui.text_edit_singleline(&mut self.ip);
-                ui.label("端口:");
+                ui.label("Port:");
                 ui.text_edit_singleline(&mut self.port);
             });
 
-            egui::ComboBox::from_label("代理协议")
+            egui::ComboBox::from_label("Proxy protocol")
                 .selected_text(self.protocol.label())
                 .show_ui(ui, |ui| {
                     ui.selectable_value(&mut self.protocol, ProxyProtocol::Http, "HTTP");
@@ -212,11 +216,11 @@ impl eframe::App for ProxyLauncherApp {
                 });
 
             ui.horizontal(|ui| {
-                if ui.button("刷新进程列表").clicked() {
+                if ui.button("Refresh process list").clicked() {
                     self.refresh_processes();
                 }
                 if let Ok(proxy) = self.current_proxy_url() {
-                    ui.label(format!("当前代理: {proxy}"));
+                    ui.label(format!("Current proxy: {proxy}"));
                 }
             });
 
@@ -227,7 +231,7 @@ impl eframe::App for ProxyLauncherApp {
                         let selected = self.selected_index == Some(idx);
                         if ui
                             .selectable_label(selected, process.display_text())
-                            .on_hover_text("选择后将以该可执行文件重新启动")
+                            .on_hover_text("Relaunch using this executable")
                             .clicked()
                         {
                             self.selected_index = Some(idx);
@@ -236,15 +240,15 @@ impl eframe::App for ProxyLauncherApp {
                 });
 
             ui.separator();
-            ui.label("可选参数（启动时附加到可执行文件后）:");
+            ui.label("Optional args (appended when launching):");
             ui.text_edit_singleline(&mut self.args);
 
-            if ui.button("使用代理启动选中进程").clicked() {
+            if ui.button("Launch selected process with proxy").clicked() {
                 self.launch_with_proxy();
             }
 
             ui.separator();
-            ui.label(format!("状态: {}", self.status));
+            ui.label(format!("Status: {}", self.status));
         });
     }
 }
