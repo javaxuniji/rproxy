@@ -8,7 +8,11 @@ fn main() -> eframe::Result<()> {
     eframe::run_native(
         "rproxy - Process Proxy Launcher",
         options,
-        Box::new(|_cc| Ok(Box::<ProxyLauncherApp>::default())),
+        Box::new(|cc| {
+            // 在这里调用设置字体的函数
+            setup_custom_fonts(&cc.egui_ctx);
+            Ok(Box::<ProxyLauncherApp>::default())
+        }),
     )
 }
 
@@ -256,7 +260,40 @@ fn split_args(input: &str) -> Vec<String> {
         .map(ToString::to_string)
         .collect()
 }
+fn setup_custom_fonts(ctx: &egui::Context) {
+    let mut fonts = egui::FontDefinitions::default();
 
+    // 1. 加载中文字体文件 (Windows 路径)
+    // 注意：在实际发布时，建议将字体文件包含在资源中或动态检测路径
+    let font_path = "C:\\Windows\\Fonts\\msyh.ttc";
+
+    if std::path::Path::new(font_path).exists() {
+        match std::fs::read(font_path) {
+            Ok(font_data) => {
+                fonts.font_data.insert(
+                    "my_font".to_owned(),
+                    egui::FontData::from_owned(font_data),
+                );
+
+                // 2. 将字体添加到优先级列表
+                // Proportional 为默认正文字体，Monospace 为等宽字体
+                fonts.families.get_mut(&egui::FontFamily::Proportional)
+                    .unwrap()
+                    .insert(0, "my_font".to_owned());
+
+                fonts.families.get_mut(&egui::FontFamily::Monospace)
+                    .unwrap()
+                    .push("my_font".to_owned());
+
+                // 3. 告诉 egui 使用这些设置
+                ctx.set_fonts(fonts);
+            }
+            Err(_) => {
+                // 如果读取失败，egui 会回退到默认字体
+            }
+        }
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::{split_args, ProxyProtocol};
