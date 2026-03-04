@@ -1,0 +1,14 @@
+/.idea
+/localfile/
+/target/*
+/localfile/*
+.trae
+
+.vscode
+/server.exe
+/src/logic/shopify_logic/graphql/output_debug/
+.claude
+.gitnexus
+.kiro
+AGENTS.md
+CLAUDE.md
